@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NEON PONG // Cyberpunk Arcade</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-cyan-magenta">
+    <div id="appContainer">
+        <!-- Background Ambient Glow -->
+        <div class="bg-glow bg-glow-left"></div>
+        <div class="bg-glow bg-glow-right"></div>
+        <div class="grid-overlay"></div>
+
+        <!-- Top Navigation / HUD Bar -->
+        <header id="gameHeader">
+            <div class="hud-player p1-hud">
+                <div class="player-info">
+                    <span class="player-label" id="p1Name">PLAYER 1</span>
+                    <div class="powerup-badge" id="p1PowerupBadge">
+                        <span class="badge-icon">⚡</span>
+                        <div class="badge-bar"><div class="badge-progress" id="p1BadgeProgress"></div></div>
+                    </div>
+                </div>
+                <div class="score-display" id="p1Score">0</div>
+            </div>
+
+            <div class="hud-center">
+                <div class="match-info">
+                    <span class="rally-counter">RALLY: <strong id="rallyCount">0</strong></span>
+                    <span class="match-target" id="targetScoreDisplay">TARGET: 11</span>
+                </div>
+                <div class="speed-indicator">
+                    <span class="speed-label">SPEED</span>
+                    <div class="speed-meter">
+                        <div class="speed-bar" id="speedBar"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hud-player p2-hud">
+                <div class="score-display" id="p2Score">0</div>
+                <div class="player-info">
+                    <span class="player-label" id="p2Name">AI (MEDIUM)</span>
+                    <div class="powerup-badge" id="p2PowerupBadge">
+                        <span class="badge-icon">⚡</span>
+                        <div class="badge-bar"><div class="badge-progress" id="p2BadgeProgress"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Action Buttons -->
+            <div class="quick-controls">
+                <button id="audioToggleBtn" class="icon-btn" title="Toggle Sound" aria-label="Toggle Sound">
+                    <svg id="soundOnIcon" class="btn-svg" viewBox="0 0 24 24" width="20" height="20">
+                        <path fill="currentColor" d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                    </svg>
+                    <svg id="soundOffIcon" class="btn-svg hidden" viewBox="0 0 24 24" width="20" height="20">
+                        <path fill="currentColor" d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
+                    </svg>
+                </button>
+                <button id="pauseToggleBtn" class="icon-btn" title="Pause Game (Esc or P)" aria-label="Pause Game">
+                    <svg class="btn-svg" viewBox="0 0 24 24" width="20" height="20">
+                        <path fill="currentColor" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Canvas Game Arena Viewport -->
+        <main id="gameWrapper">
+            <canvas id="gameCanvas" width="1280" height="720"></canvas>
+
+            <!-- Touch Controls Overlay for Mobile / Tablets -->
+            <div id="touchControls" class="touch-controls hidden">
+                <div class="touch-zone left-touch-zone" id="p1TouchZone">
+                    <button class="touch-btn up-btn" id="p1TouchUp">▲</button>
+                    <button class="touch-btn down-btn" id="p1TouchDown">▼</button>
+                </div>
+                <div class="touch-zone right-touch-zone hidden" id="p2TouchZone">
+                    <button class="touch-btn up-btn" id="p2TouchUp">▲</button>
+                    <button class="touch-btn down-btn" id="p2TouchDown">▼</button>
+                </div>
+            </div>
+
+            <!-- In-game Announcement / Countdown Overlay -->
+            <div id="courtAnnouncement" class="court-announcement hidden">
+                <h2 id="announcementText">READY?</h2>
+                <div id="announcementSubtext">PRESS SPACE OR TAP TO SERVE</div>
+            </div>
+        </main>
+
+        <!-- FOOTER BAR / CONTROLS HINT -->
+        <footer id="gameFooter">
+            <div class="hints-container">
+                <span class="hint-item"><kbd>W</kbd> / <kbd>S</kbd> P1 Move</span>
+                <span class="hint-item" id="p2ControlHint"><kbd>▲</kbd> / <kbd>▼</kbd> P2 Move</span>
+                <span class="hint-item"><kbd>SPACE</kbd> Serve</span>
+                <span class="hint-item"><kbd>P</kbd> / <kbd>ESC</kbd> Pause</span>
+                <span class="hint-item"><kbd>M</kbd> Mute</span>
+            </div>
+        </footer>
+
+        <!-- MODAL OVERLAYS -->
+
+        <!-- 1. MAIN MENU -->
+        <div id="mainMenu" class="modal-screen active">
+            <div class="modal-card menu-card">
+                <div class="brand-header">
+                    <div class="neon-pill">ARCADE CLASSIC 2.0</div>
+                    <h1 class="game-title">NEON<span class="accent-text">PONG</span></h1>
+                    <p class="game-subtitle">CYBERPUNK SPEED &amp; POWER-UPS</p>
+                </div>
+
+                <div class="menu-actions">
+                    <button class="neon-btn primary-btn" id="btnVsAI">
+                        <span class="btn-icon">🤖</span>
+                        <span class="btn-text">1 PLAYER VS AI</span>
+                    </button>
+                    <button class="neon-btn secondary-btn" id="btn2P">
+                        <span class="btn-icon">👥</span>
+                        <span class="btn-text">2 PLAYERS LOCAL</span>
+                    </button>
+                    <button class="neon-btn tertiary-btn" id="btnRally">
+                        <span class="btn-icon">🔥</span>
+                        <span class="btn-text">ENDLESS RALLY</span>
+                    </button>
+                    <div class="btn-row">
+                        <button class="neon-btn outline-btn" id="btnSettings">
+                            <span class="btn-icon">⚙️</span>
+                            <span class="btn-text">SETTINGS</span>
+                        </button>
+                        <button class="neon-btn outline-btn" id="btnHelp">
+                            <span class="btn-icon">❓</span>
+                            <span class="btn-text">HOW TO PLAY</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="high-score-banner" id="highScoreBanner">
+                    <span>BEST RALLY RECORD: <strong id="bestRallyScore">0</strong></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. AI DIFFICULTY SELECTION MODAL -->
+        <div id="difficultyModal" class="modal-screen hidden">
+            <div class="modal-card">
+                <h2 class="modal-title">CHOOSE AI DIFFICULTY</h2>
+                <div class="difficulty-options">
+                    <button class="diff-card" data-diff="easy">
+                        <div class="diff-header">
+                            <span class="diff-name">CADET</span>
+                            <span class="diff-tag easy">EASY</span>
+                        </div>
+                        <p class="diff-desc">Relaxed speed and forgiving reaction time. Great for casual rallies.</p>
+                    </button>
+
+                    <button class="diff-card selected" data-diff="medium">
+                        <div class="diff-header">
+                            <span class="diff-name">PILOT</span>
+                            <span class="diff-tag medium">MEDIUM</span>
+                        </div>
+                        <p class="diff-desc">Balanced agility and steady tracking. Standard arcade experience.</p>
+                    </button>
+
+                    <button class="diff-card" data-diff="hard">
+                        <div class="diff-header">
+                            <span class="diff-name">CYBORG</span>
+                            <span class="diff-tag hard">HARD</span>
+                        </div>
+                        <p class="diff-desc">High reaction speed, trajectory prediction, and sharp corner shots.</p>
+                    </button>
+
+                    <button class="diff-card" data-diff="impossible">
+                        <div class="diff-header">
+                            <span class="diff-name">NEURAL GOD</span>
+                            <span class="diff-tag impossible">IMPOSSIBLE</span>
+                        </div>
+                        <p class="diff-desc">Zero-delay instant physics anticipation. Can you score even 1 point?</p>
+                    </button>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="neon-btn outline-btn" id="btnBackFromDiff">BACK</button>
+                    <button class="neon-btn primary-btn" id="btnStartAIGame">START MATCH</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. PAUSE MENU MODAL -->
+        <div id="pauseModal" class="modal-screen hidden">
+            <div class="modal-card small-card">
+                <h2 class="modal-title">GAME PAUSED</h2>
+                <div class="pause-actions">
+                    <button class="neon-btn primary-btn" id="btnResume">RESUME MATCH</button>
+                    <button class="neon-btn secondary-btn" id="btnRestart">RESTART MATCH</button>
+                    <button class="neon-btn outline-btn" id="btnPauseSettings">SETTINGS</button>
+                    <button class="neon-btn danger-btn" id="btnQuitToMenu">QUIT TO MENU</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. GAME OVER MODAL -->
+        <div id="gameOverModal" class="modal-screen hidden">
+            <div class="modal-card">
+                <div class="winner-trophy" id="winnerTrophy">🏆</div>
+                <h2 class="winner-title" id="winnerTitle">PLAYER 1 WINS!</h2>
+                <p class="winner-subtitle" id="winnerSubtitle">VICTORY CHAMPION</p>
+
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <span class="stat-label">FINAL SCORE</span>
+                        <span class="stat-value" id="statFinalScore">11 - 8</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">MAX RALLY</span>
+                        <span class="stat-value" id="statMaxRally">24</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">TOP BALL SPEED</span>
+                        <span class="stat-value" id="statMaxSpeed">18.4 px/f</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">MATCH DURATION</span>
+                        <span class="stat-value" id="statMatchTime">02:15</span>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="neon-btn primary-btn" id="btnPlayAgain">PLAY AGAIN</button>
+                    <button class="neon-btn outline-btn" id="btnGameOverMenu">MAIN MENU</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. SETTINGS MODAL -->
+        <div id="settingsModal" class="modal-screen hidden">
+            <div class="modal-card settings-card">
+                <h2 class="modal-title">GAME SETTINGS</h2>
+
+                <div class="settings-group">
+                    <label class="setting-label" for="themeSelect">VISUAL COLOR THEME</label>
+                    <div class="theme-picker" id="themePicker">
+                        <button class="theme-option active" data-theme="theme-cyan-magenta" style="--t-p1:#00f0ff; --t-p2:#ff0055;">
+                            <span>CYAN / MAGENTA</span>
+                        </button>
+                        <button class="theme-option" data-theme="theme-matrix" style="--t-p1:#00ff66; --t-p2:#00cc44;">
+                            <span>MATRIX GREEN</span>
+                        </button>
+                        <button class="theme-option" data-theme="theme-synthwave" style="--t-p1:#ff71ce; --t-p2:#fde24f;">
+                            <span>SYNTHWAVE</span>
+                        </button>
+                        <button class="theme-option" data-theme="theme-monochrome" style="--t-p1:#ffffff; --t-p2:#aaaaaa;">
+                            <span>RETRO MONO</span>
+                        </button>
+                        <button class="theme-option" data-theme="theme-crimson" style="--t-p1:#ff3333; --t-p2:#ff9900;">
+                            <span>CRIMSON ECLIPSE</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="settings-grid">
+                    <div class="setting-item">
+                        <label class="setting-label">MATCH POINT TARGET</label>
+                        <select id="scoreLimitSelect" class="cyber-select">
+                            <option value="5">First to 5 Points</option>
+                            <option value="11" selected>First to 11 Points (Standard)</option>
+                            <option value="21">First to 21 Points (Pro)</option>
+                            <option value="999">Endless Match</option>
+                        </select>
+                    </div>
+
+                    <div class="setting-item">
+                        <label class="setting-label">BALL BASE SPEED</label>
+                        <select id="ballSpeedSelect" class="cyber-select">
+                            <option value="slow">Slow &amp; Steady (6.0)</option>
+                            <option value="normal" selected>Normal Arcade (8.5)</option>
+                            <option value="fast">Hyper Fast (11.0)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="settings-toggles">
+                    <div class="toggle-row">
+                        <div class="toggle-info">
+                            <span class="toggle-title">POWER-UP ITEMS</span>
+                            <span class="toggle-desc">Spawn floating multi-balls, mega paddles &amp; freezes</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="powerupsToggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="toggle-row">
+                        <div class="toggle-info">
+                            <span class="toggle-title">P1 MOUSE / TOUCH TRACKING</span>
+                            <span class="toggle-desc">Control Player 1 paddle directly with cursor / finger</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="mouseControlToggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="toggle-row">
+                        <div class="toggle-info">
+                            <span class="toggle-title">SOUND EFFECTS &amp; SFX</span>
+                            <span class="toggle-desc">Web Audio synthesized arcade audio</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="soundEffectsToggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="volume-slider-row">
+                        <span class="volume-label">SFX VOLUME: <span id="volValueText">75%</span></span>
+                        <input type="range" id="soundVolumeSlider" min="0" max="100" value="75" class="cyber-slider">
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="neon-btn primary-btn" id="btnCloseSettings">SAVE &amp; CLOSE</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. HOW TO PLAY MODAL -->
+        <div id="helpModal" class="modal-screen hidden">
+            <div class="modal-card help-card">
+                <h2 class="modal-title">HOW TO PLAY</h2>
+
+                <div class="help-section">
+                    <h3>🎮 CONTROLS</h3>
+                    <div class="controls-guide">
+                        <div class="guide-col">
+                            <h4>PLAYER 1 (LEFT)</h4>
+                            <p><kbd>W</kbd> or <kbd>A</kbd> — Move Up</p>
+                            <p><kbd>S</kbd> or <kbd>Z</kbd> — Move Down</p>
+                            <p>Or enable Mouse Tracking in Settings</p>
+                        </div>
+                        <div class="guide-col">
+                            <h4>PLAYER 2 (RIGHT)</h4>
+                            <p><kbd>▲ UP</kbd> — Move Up</p>
+                            <p><kbd>▼ DOWN</kbd> — Move Down</p>
+                            <p>Used in 2-Player Local Mode</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="help-section">
+                    <h3>⚡ SPIN &amp; SMASH MECHANICS</h3>
+                    <p>
+                        • <strong>Deflection Angles:</strong> Hitting the ball near the edges of your paddle returns it at sharper, unpredictable angles.<br>
+                        • <strong>Spin / Curve:</strong> Moving your paddle while striking adds kinetic energy, curving and accelerating the ball!<br>
+                        • <strong>Speed Ramping:</strong> The longer the rally goes without a score, the faster the ball travels.
+                    </p>
+                </div>
+
+                <div class="help-section">
+                    <h3>✨ POWER-UP ITEMS</h3>
+                    <div class="powerup-grid">
+                        <div class="powerup-item">
+                            <span class="pu-icon">⚡</span>
+                            <div>
+                                <strong>HYPER SPEED</strong>
+                                <p>Supercharges the ball with blinding fire trails.</p>
+                            </div>
+                        </div>
+                        <div class="powerup-item">
+                            <span class="pu-icon">🏓</span>
+                            <div>
+                                <strong>MEGA PADDLE</strong>
+                                <p>Expands paddle length by +50% for 10 seconds.</p>
+                            </div>
+                        </div>
+                        <div class="powerup-item">
+                            <span class="pu-icon">💫</span>
+                            <div>
+                                <strong>MULTI-BALL</strong>
+                                <p>Splits game into 3 simultaneous active balls!</p>
+                            </div>
+                        </div>
+                        <div class="powerup-item">
+                            <span class="pu-icon">❄️</span>
+                            <div>
+                                <strong>FREEZE BLAST</strong>
+                                <p>Slows down the opponent's paddle movement by 50%.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="neon-btn primary-btn" id="btnCloseHelp">GOT IT!</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AUDIO ENGINE & GAME SCRIPTS -->
+    <script src="js/audio.js"></script>
+    <script src="js/particles.js"></script>
+    <script src="js/paddle.js"></script>
+    <script src="js/ball.js"></script>
+    <script src="js/powerups.js"></script>
+    <script src="js/ai.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
