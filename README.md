@@ -17,8 +17,7 @@
   <a href="#-features">Features</a> •
   <a href="#-controls">Controls</a> •
   <a href="#-getting-started">Getting Started</a> •
-  <a href="#-tech-stack">Tech Stack</a> •
-  <a href="#-how-to-add-your-preview-video--gif">Video / GIF Guide</a>
+  <a href="#-tech-stack">Tech Stack</a>
 </p>
 
 </div>
@@ -27,11 +26,9 @@
 
 ## 🎬 Gameplay Preview
 
-<!-- PREVIEW GIF -->
 <div align="center">
   <img src="assets/preview.gif" alt="Neon Pong Gameplay Preview" width="800" style="max-width: 100%; border-radius: 10px; box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);" />
 </div>
-> 💡 **Have a video file (.mp4 / .webm) or GIF?** Check the [Preview Setup Guide](#-how-to-add-your-preview-video--gif) below to easily embed it right here!
 
 ---
 
@@ -73,7 +70,7 @@
 
 No build tools or installations required! Neon Pong runs directly in any modern web browser.
 
-### Option 1: Play Locally
+### Play Locally
 
 1. **Clone the repository**:
    ```bash
@@ -109,35 +106,10 @@ No build tools or installations required! Neon Pong runs directly in any modern 
 │   ├── particles.js # High-performance particle emitter system
 │   ├── audio.js     # Procedural Web Audio API sound synthesizer
 │   └── ui.js        # HUD updates, theme switching, and modal dialogs
+├── assets/
+│   └── preview.gif  # Gameplay preview animation
 └── README.md        # Project documentation
 ```
-
----
-
-## 📹 How to Add Your Preview Video / GIF
-
-Here are the best ways to display your preview in GitHub README:
-
-### Method 1: Using a GIF (Recommended for automatic animation)
-1. Convert your video to a `.gif` using free tools like [Ezgif](https://ezgif.com/video-to-gif) or CLI `ffmpeg`:
-   ```bash
-   ffmpeg -i preview.mp4 -vf "fps=20,scale=800:-1:flags=lanczos" -c:v gif preview.gif
-   ```
-2. Place `preview.gif` in the repository root (or in an `assets/` folder).
-3. Reference it in markdown:
-   ```markdown
-   ![Neon Pong Demo](preview.gif)
-   ```
-
-### Method 2: Upload Directly on GitHub (Video / MP4 support)
-1. Go to your GitHub repository on github.com.
-2. Edit `README.md` (or open any GitHub Issue / PR comment box).
-3. **Drag and drop your `.mp4` video** directly into the editor text area.
-4. GitHub will upload it to its CDN and generate a link like:
-   ```html
-   https://github.com/user-attachments/assets/xxxx-xxxx-xxxx
-   ```
-5. Paste that generated link into your README! GitHub will render a native HTML5 video player with controls.
 
 ---
 
