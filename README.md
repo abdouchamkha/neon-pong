@@ -27,11 +27,10 @@
 
 ## 🎬 Gameplay Preview
 
-<!-- REPLACE WITH YOUR PREVIEW GIF OR VIDEO -->
+<!-- PREVIEW GIF -->
 <div align="center">
-  <img src="preview.gif" alt="Neon Pong Gameplay Preview" width="800" style="max-width: 100%; border-radius: 10px; box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);" />
+  <img src="assets/preview.gif" alt="Neon Pong Gameplay Preview" width="800" style="max-width: 100%; border-radius: 10px; box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);" />
 </div>
-
 > 💡 **Have a video file (.mp4 / .webm) or GIF?** Check the [Preview Setup Guide](#-how-to-add-your-preview-video--gif) below to easily embed it right here!
 
 ---
